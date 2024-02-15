@@ -1,0 +1,153 @@
+QuickSight : 
+
+-- Amazon QuickSight is a fully managed cloud-scale business(serverless) intelligence service that is powered by machine learning and allows you to create data visualizations and dashboards for the people you work with, wherever they are. It's a competitor to business intelligence tools like Tableau and Microsoft's Power BI.
+
+-- Amazon QuickSight for software as a service (SaaS); QuickSight lets you easily create and publish interactive BI dashboards that include machine learning-powered insights.
+
+QuickSight Features : 
+
+-- pay per session pricing 
+
+Eg : if a reader access QS for 30 minutes , u will be charged for that session only which is $0.30 , max charge is $5 per month 
+
+-- Scales to tens of thousands of users 
+
+-- ML insights 
+
+-- Support for multiple platforms Android, IOS
+
+-- EAsy Integration with AWS services and other third-party services(jira, service now, salesforce)
+
+
+Working Flow 
+
+S3 bucket which have data --> AWS lake formation ( aws glue Crawler--> glue catalog) --> Amazon Athena / Amazon EMR/AMazon Redshift Specturm --> Amazon QuickSight
+
+
+Components of QuickSight :
+
+1 SPICE :
+
+S = Super-fast 
+P = Parallel
+I = In-memory
+C = Calculation
+E = Engine
+
+-- automate and it is managed by AWS , once u load the data in the SPICE , u can generate as many visualizations as u want 
+
+-- it is quite Costly 
+
+10GB/User and $0.38/GB afterwards
+
+Advantages :
+
+-- fast for analytical Queries
+-- more wait in Direct Queries
+-- Data Stored in SPICE can be used multiple times 
+
+Problem : What if source data got refreshed?
+
+once u have data and nxt day u have added some data , that should be also display in visualization , in this process u have to refresh the day everytime and specify the intervals 
+
+
+
+2 Direct Queries : (only for DB-source)
+
+-- in this model u can genarate the visualizations instaed of loaded into the SPICE to overcome from the billing 
+
+-- got Direct Queries , the dataSource must be a DataBase Such as RDS, Athena, DynamoDB
+
+Advantages:
+
+-- ONly charged when u create analysis 
+
+-- NO need to refresh the data as we must do in SPICE
+
+
+-- how to setup QuickSight account for first time users
+
+-- go with enterprise edition 
+
+-- choose Authentication method = Use IAM federated identities & QuickSight-managed users
+
+-- give name of ur account   == SubbuAthena
+
+-- give access to ur s3 bucket
+
+--  done with registration 
+
+
+
+===============================================Hands-On=============================================
+
+
+Step 1 : create s3 bucket and insert some .csv data 
+
+--  insert some  data in the bucket 
+
+--   create one folder inside bucket and go to google and search for sample .csv files downlaod and upload in the s3 bucket 
+
+Step 2 : Glue
+
+-- open glue in console
+
+-- glue --> left panel data Catalog --> crawlers --> add crawlers --> give name of ur crawler --> not yet --> add a data source --> choose s3 --> copy uri of ur bucket and paste in S3 path --> click on create new role , give name of ur role and select nxt --> click on create new database --> give name of ur database , nxt --> frequency = on-demand --> create crawler
+
+-- now try to run the crawler , 
+
+--  u can also check the logs in cloudwatch 
+
+-- once u done with the running part , a table will added to the database , table name is same as the folder name of s3 that u have uploaded 
+
+--  if ur data is not match , then u can also do edit ur schema 
+
+
+step 3 : Athena
+
+-- open Athena in the console
+
+-- in the left panel u will see the database and table , u can check all the coloums of ur table
+
+-- now do queries , before that u should add destination to store our outputs in the s3 bucket 
+
+-- go to s3 buckets create one folder in the bucket to store the outputs
+
+-- now try to query in athena editor
+
+-- SELECT * FROM "weather-database"."weather_csv" limit 10;
+
+above is eg query , u can replace with ur details 
+
+weather-database = database name 
+
+weather_csv = table name
+
+
+NOTE : if u r getting zero records but query is successfull then do 
+
+ur s3 location is like this 
+
+s3://doc-example-bucket/table1.csv 
+
+-- to get avoid from this error , jst create one sub-folder and upload .csv file in that subfolder 
+
+s3://doc-example-bucket/table1/table1.csv
+
+
+
+-- in the crawler location u have to give like this , then u won't get any error
+
+s3://doc-example-bucket/table1/
+
+
+Step 4 : open QuickSight 
+
+-- create dataset --> choose athena , it is our use case now --> give name of ur dataSource --> validate connection n create dataSource --> select database --> select table of urs .
+
+-- choose Direct query --> visualize
+
+-- once u do this , in the left panel all the field list will visible and select any one as u want 
+
+-- there will be sigltly delay in Direct queries 
+
